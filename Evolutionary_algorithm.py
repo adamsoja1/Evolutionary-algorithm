@@ -145,7 +145,7 @@ class Evolution:
         return losses
 
     def select_best_individuals(self,
-                                specimens:list)->list[list]:
+                                specimens:list)->list:
         """Returns best individuals based on their losses
         Minimal loss -> better"""
         
@@ -174,7 +174,7 @@ class Evolution:
         best_offspring = self.population.offsprings[idx] 
         return best_offspring
     
-    def get_best_parent_offspring(self)->tuple[list]:
+    def get_best_parent_offspring(self)->tuple:
         return self.select_best_parent(),self.select_best_offspring()
 
 
@@ -233,7 +233,8 @@ class Evolution:
         
 if __name__ == '__main__':    
     
-    evolution = Evolution('model1.txt', 200)
+    evolution = Evolution('model1.txt', 500)
+    
     for i in range(150):
         print(f'Iteration {i}: ',end='')
         evolution.update_population()   
@@ -262,3 +263,76 @@ if __name__ == '__main__':
 
     
     evolution.show_model_trained(evolution.population.offsprings[0].chromosome)
+
+from time import perf_counter
+
+def results_print(sizes,approaches):
+    
+    for size in sizes:
+        for approach in approaches:
+            time_start = perf_counter()
+            evolution = Evolution('model1.txt', size)
+            evolution.population.parent_offspring = True
+            if approach == 'Parent + offspring':
+                evolution.population.parent_offspring = True
+            else:
+                evolution.population.parent_offspring = False
+            i=0    
+            while True:
+                
+                print(f'Iteration {i}: ',end='')
+                evolution.update_population()   
+                print(' ' * 6)
+                print(f'Mse difference {i}: ',end='')
+                mse = evolution.mse_parent_offspring()
+                print('{:.6f}'.format(mse))
+                print()
+                if evolution.mse_parent_offspring() < 0.00001:
+                    break
+                print('_'*30)    
+                print('',end='\r')
+                i+=1 
+            time_stop = perf_counter()
+            time = time_stop - time_start
+            with open('results.txt','a+') as file:
+                file.write(f'{i},{time},{approach}, {size}, {evolution.population.offsprings[0].chromosome} ,{evolution.population.offsprings[0].std}\n')
+                
+                        
+            
+
+        
+    
+sizes = [10,50,70,100,150,200,500,1000,1500]
+approaches = ['Parent + offspring','Parent,offspring']
+results_print(sizes,approaches)
+
+
+
+
+import pandas as pd
+
+data = [
+    (0.39747652000005473, 'Parent + offspring', 10, [6.81726118, -0.15177385, 4.47357109], [0.292105, 0.81045536, 0.64893694]),
+    (1.6506575319999683, 'Parent, offspring', 10, [6.78242478, 0.2236641, -1.10969154], [2.93555997e-04, 4.30007828e-04, 8.31978050e-05]),
+    (8.374242145000153, 'Parent + offspring', 50, [6.63328117, 1.91076597, 20.63692633], [1.98263494e-04, 4.13187532e-04, 8.43754090e-05]),
+    (8.096537547000025, 'Parent, offspring', 50, [6.63335791, 1.91076262, -0.62677709], [1.24561823e-03, 4.89032040e-04, 3.88732062e-05]),
+    (11.195644290000018, 'Parent + offspring', 70, [6.63341644, 1.91078771, -0.62677902], [1.33616916e-04, 1.25619532e-03, 6.13320028e-05]),
+    (9.952839497000014, 'Parent, offspring', 70, [6.6333768, 1.91080739, -0.62678278], [8.53012565e-05, 2.88497535e-04, 3.93126558e-05]),
+    (15.387736241000084, 'Parent + offspring', 100, [6.63335294, 1.91079338, 0.62678737], [4.28162398e-04, 1.85607823e-04, 2.12426456e-05]),
+    (14.891080633000001, 'Parent, offspring', 100, [6.63338696, 1.91073851, 19.38336116], [2.43556034e-04, 2.41410392e-04, 1.04493422e-05]),
+    (23.22253052499991, 'Parent + offspring', 150, [6.63336685, 1.91074284, 0.62678306], [9.63473317e-07, 1.52380315e-04, 1.01732405e-05]),
+    (16.686700150999968, 'Parent, offspring', 150, [6.63329742, 1.91077214, 0.62678973], [5.14675582e-05, 5.63480095e-05, 5.04467473e-05]),
+    (24.446906922000153, 'Parent + offspring', 200, [6.6334155, 1.91072806, 0.62678305], [4.00889766e-05, 2.67584699e-04, 7.36422159e-06]),
+    (26.58770451800001, 'Parent, offspring', 200, [6.6333937, 1.91069804, -19.38336095], [1.10970294e-04, 4.92879574e-04, 3.82111490e-05]),
+    (64.98132117399996, 'Parent + offspring', 500, [6.63334531, 1.91075811, 0.62678746], [1.08821763e-04, 1.04931566e-04, 1.38007187e-05]),
+    (58.644564614000046, 'Parent, offspring', 500, [6.63335538, 1.91080566, 0.62678458], [4.22479810e-05, 9.44935140e-05, 3.79723061e-05]),
+    (114.71774708499993, 'Parent + offspring', 1000, [6.63335933, 1.91079957, 0.62678314], [1.80662434e-04, 3.12786582e-05, 1.69839238e-05]),
+    (105.93353380600001, 'Parent, offspring', 1000, [6.63335045, 1.91077694, -0.62678262], [4.05389710e-05, 5.19912408e-04, 5.07097703e-06]),
+    (166.2528692410001, 'Parent + offspring', 1500, [6.63336733, 1.91075335, 0.62678332], [7.09149988e-04, 1.92657757e-03, 7.54964998e-05]),
+    (156.30844559300022, 'Parent, offspring', 1500, [6.63333308, 1.91079363, -0.6267845], [9.27610009e-04, 3.38522785e-04, 1.14818368e-05])
+]
+
+df = pd.DataFrame(data, columns=['Time', 'Type', 'Population', 'Chromosome','Stds'])
+print(df)
+
+

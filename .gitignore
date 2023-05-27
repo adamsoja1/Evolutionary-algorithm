@@ -8,6 +8,8 @@ _pycache__/
 *.mp3
 *.wav
 
+.DS_store
+/.DS_store
 
 # C extensions
 *.so
